@@ -1,56 +1,59 @@
-//
-// fetch(url)
-//     .then(((resp) => resp.json())
-//     .then(function(data) {
-//         value = data;
-//         console.log(value);
-//     })
-//     .catch(function(error) {
-//         console.log(JSON.stringify(error));
-//     });
-
-var email ;
-var password;
-var loginURL = "https://hardware.wscada.net/auth";
-
-
 function validate() {
-    email = document.getElementById("inputEmail").value;
-    password = document.getElementById("inputPassword").value;
-    getToken(loginURL, email, password);
+    var email = document.getElementById("inputEmail").value;
+    var password = document.getElementById("inputPassword").value;
+    var url ="https://hardware.wscada.net/auth";
+    // XMLRequest(email, password, url);
+    fetchRequest(email, password, url);
 
 }
 
-// $('.for_validation').click(function(){
-//     validate();
-// });
+// function XMLRequest(email, password, url) {
+//     var data = JSON.stringify({
+//         "id" : email ,
+//         "password" : password
+//     });
+//
+//     var request = new XMLHttpRequest();
+//
+//     request.open("POST", url , true);
+//
+//     request.setRequestHeader("Content-Type", "application/json");
+//
+//     request.onreadystatechange = function() {//Call a function when the state changes.
+//         if(request.readyState == 4 && request.status == 200) {
+//             alert(request.responseText);
+//         }
+//     }
+//
+//     request.send(data);
+// }
 
-function getToken(url, id, password) {
-    var Base64={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",encode:function(e){var t="";var n,r,i,s,o,u,a;var f=0;e=Base64._utf8_encode(e);while(f<e.length){n=e.charCodeAt(f++);r=e.charCodeAt(f++);i=e.charCodeAt(f++);s=n>>2;o=(n&3)<<4|r>>4;u=(r&15)<<2|i>>6;a=i&63;if(isNaN(r)){u=a=64}else if(isNaN(i)){a=64}t=t+this._keyStr.charAt(s)+this._keyStr.charAt(o)+this._keyStr.charAt(u)+this._keyStr.charAt(a)}return t},decode:function(e){var t="";var n,r,i;var s,o,u,a;var f=0;e=e.replace(/[^A-Za-z0-9\+\/\=]/g,"");while(f<e.length){s=this._keyStr.indexOf(e.charAt(f++));o=this._keyStr.indexOf(e.charAt(f++));u=this._keyStr.indexOf(e.charAt(f++));a=this._keyStr.indexOf(e.charAt(f++));n=s<<2|o>>4;r=(o&15)<<4|u>>2;i=(u&3)<<6|a;t=t+String.fromCharCode(n);if(u!=64){t=t+String.fromCharCode(r)}if(a!=64){t=t+String.fromCharCode(i)}}t=Base64._utf8_decode(t);return t},_utf8_encode:function(e){e=e.replace(/\r\n/g,"\n");var t="";for(var n=0;n<e.length;n++){var r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r)}else if(r>127&&r<2048){t+=String.fromCharCode(r>>6|192);t+=String.fromCharCode(r&63|128)}else{t+=String.fromCharCode(r>>12|224);t+=String.fromCharCode(r>>6&63|128);t+=String.fromCharCode(r&63|128)}}return t},_utf8_decode:function(e){var t="";var n=0;var r=c1=c2=0;while(n<e.length){r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r);n++}else if(r>191&&r<224){c2=e.charCodeAt(n+1);t+=String.fromCharCode((r&31)<<6|c2&63);n+=2}else{c2=e.charCodeAt(n+1);c3=e.charCodeAt(n+2);t+=String.fromCharCode((r&15)<<12|(c2&63)<<6|c3&63);n+=3}}return t}};
-    var key;
-    var request = new XMLHttpRequest();
-    request.open("POST", url, true);
+function fetchRequest(email, password, url) {
+    var sendData = JSON.stringify({
+        "id" : email ,
+        "password" : password
+    });
 
-    request.onreadystatechange = function () {
-        if(request.readyState == 4 && request.status == 200) {
-            var response = request.responseText;
-            var obj = JSON.parse(response);
+    fetch(url, {
+        method : 'post',
+        headers : {"Content-type" : "application/json"},
+        body : sendData
+    })
+        .then(response => response.json())
+        .then(function(data) {
+            console.log('Request succeeded with JSON response', data);
+            if(data.response.errors.length === 0) {
+                    window.location.replace("index.html");
+            }
+            else
+            {
+                alert("Username or password Incorrect, plz enter correct username or password");
+            }
+        })
+        .catch(function(error) {
+            console.log('Request Failed', error);
+        });
 
-            console.log("hello");
-            console.log(response);
-            console.log(obj);
-            console.log(obj.response.errors[0].reason);
 
-            alert("Logged in Sucessfully!!!");
-            window.location = "index.html";
-        }
-
-
-        }
-    request.setRequestHeader("Content-type", "application/json");
-    request.setRequestHeader("Authorization", "Basic" + Base64.encode('id:password'));
-    request.send();
-    }
-
-
+}
 
