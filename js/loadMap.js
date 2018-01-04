@@ -1,104 +1,153 @@
-var icon;
-var marker;
+
 var map;
 var bounds;
+var select;
+var deviceList;
 
-function initMap() {
-    var latitude = 27.642423;
-    var longitude = 85.340586;
-    var location = new google.maps.LatLng(latitude, longitude);
-    var mapCanvas = document.getElementById('map');
-    var mapOptions = {
-       center : location,
-       zoom : 16,
-       panControl : false,
-       scrollwheel : true,
-       fullscreenControl : true,
-       mapTypeId : google.maps.MapTypeId.ROADMAP
+function populateSelection(){
 
-   };
-    map = new google.maps.Map(mapCanvas, mapOptions);
-    createIcon('black');
-    bounds = new google.maps.LatLngBounds();
-    addMarkers(27.642324, 86.340587, 120, 1);
-    createIcon('red');
-    addMarkers(27.642325, 86.340588, 120, 1);
-    //
-     map.fitBounds(bounds);
-     map.panToBounds(bounds);
+    retriveDevices();
+    var index;
+    deviceList = ["device1", "device2", "device3"];
+    select = document.getElementById("device-select");
+    for(index in deviceList) {
+        select.options[select.options.length] = new Option(deviceList[index], index);
+
+    }
+
 }
 
-function addMarkers(latitude, longitude, heading, HDOP) {
-    var LatLong = latitude + ', ' + longitude;
-    icon.rotation = heading;
+function initMap() {
+    populateSelection();
+    var markers = [
+        [40.671531, -73.963588, 360, 0.4],
+        [40.672587, -73.968146, 120, 0.6],
+        [40.665588, -73.965336, 200, 0.9]
+    ];
 
-    createMarkers(new google.maps.LatLng(latitude, longitude));
-    var contentString =
+    bounds = new google.maps.LatLngBounds();
+    var mapOptions = {
+         mapTypeId : google.maps.MapTypeId.ROADMAP
+   };
+    map = new google.maps.Map(document.getElementById("map"), mapOptions);
+    map.setTilt(50);
+
+    var icon = createIcon();
+    addMarker(markers[0], icon);
+    addMarker(markers[1], icon);
+    addMarker(markers[2], icon);
+}
+
+function addMarker(posInfo, icon) {
+
+        var infoWindowContent =
             '<div class="info-window">' +
                 '<div class="info-content">' +
                     '<table class="table">' +
                         '<tbody>' +
                             '<tr>' +
-                                '<th>Date & Time :</th>' +
-                                '<td>' + time +'</td>'+
+                                // '<th>Date & Time :</th>' +
+                                // '<td>' + gpsTime +'</td>'+
                             '</tr>' +
                             '<tr>' +
                                 '<th>Position :</th>' +
-                                '<td>' + LatLong +'</td>'+
+                                '<td>' + posInfo[0] + ', ' + posInfo[1] +'</td>'+
                             '</tr>' +
                             '<tr>' +
                                 '<th>Heading :</th>' +
-                                '<td>' + heading + '</td>'+
+                                '<td>' + posInfo[2] + '</td>'+
                             '</tr>' +
                             '<tr>' +
                                 '<th>HDOP :</th>' +
-                                '<td>' + HDOP + '</td>'+
+                                '<td>' + posInfo[3] + '</td>'+
                             '</tr>' +
                         '</tbody>' +
                     '</table>' +
                 '</div>' +
-                // '<script>' +
-                //     'document.getElementById("currentTime").innerHTML = Date();' +
-                // '</script>' +
-             '</div>';
+            // '<script>' +
+            //     'document.getElementById("currentTime").innerHTML = Date();' +
+            // '</script>' +
+            '</div>';
 
-
+        var position = new google.maps.LatLng(posInfo[0], posInfo[1]);
         var infowindow = new google.maps.InfoWindow({
-            content: contentString,
-            maxWidth: 1000
+            content: infoWindowContent
         });
 
-        marker.addListener('click', function () {
+        bounds.extend(position);
+        icon.rotation = posInfo[2];
+
+        var marker = new google.maps.Marker({
+            position: position,
+            map: map,
+            icon: icon
+        });
+
+        // marker.addListener('mouseover', function(){
+        //
+        //         infowindow.close();
+        //
+        //     infowindow.open(map, marker);
+        // });
+        // marker.addListener('mouseout', function(){
+        //     infowindow.close();
+        // });
+        marker.addListener('click', function(){
             infowindow.open(map, marker);
         });
-    marker.setMap(map);
-    var loc = new google.maps.LatLng(marker.position.lat(), marker.position.lng());
-    bounds.extend(loc);
+        google.maps.event.addListener(map, 'click', function(){
+            infowindow.close();
+        })
 
+        map.fitBounds(bounds);
+        var boundsListener = google.maps.event.addListener((map), 'bounds_changed', function(event) {
+            this.setZoom(14);
+            google.maps.event.removeListener(boundsListener);
+        });
 }
 
-function createIcon(color) {
-    icon = {
+function createIcon() {
+    var icon = {
         path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
         scale: 3,
-        fillColor: color,
+        fillColor: 'yellow',
         fillOpacity: 1,
         anchor: new google.maps.Point(0,0),
-        rotation : 0
     };
+    return icon;
+
 }
 
-function createMarkers(location) {
-     marker = new google.maps.Marker({
-        position: location,
-        map: map,
-        draggable: false,
-        icon: icon,
-        flat: true
-    });
+function retriveDevices() {
+
 }
 
-function centerMap(latitude, longitude) {
-    var location = new google.maps.LatLng(latitude, longitude);
-    map.center = location;
-}
+//
+// function snapToRoad() {
+//     var api = "https://roads.googleapis.com/v1/snapToRoads?"
+//     var path ="path=-35.27801,149.12958|-35.28032,149.12907|-35.28099,149.12929|-35.28144,149.12984|-35.28194,149.13003|-35.28282,149.12956|-35.28302,149.12881|-35.28473,149.12836";
+//     var option = "&interpolate=true";
+//     var apiKey = "&key=AIzaSyBzdQ2kuc-gSOkz2Un-r3YZ0Tnb2L7PU-c";
+//
+//     var url = api + path + option + apiKey;
+//
+//     fetch(url, {
+//         method : 'get'
+//     })
+//         .then(response => response.json())
+//         .then(function(data) {
+//             console.log('Request succeeded with JSON response', data);
+//             if(data.response.errors.length === 0) {
+//                     window.location.replace("index.html");
+//             }
+//             else
+//             {
+//                 alert("Username or password Incorrect, plz enter correct username or password");
+//             }
+//         })
+//         .catch(function(error) {
+//             console.log('Request Failed', error);
+//         });
+// }
+
+
